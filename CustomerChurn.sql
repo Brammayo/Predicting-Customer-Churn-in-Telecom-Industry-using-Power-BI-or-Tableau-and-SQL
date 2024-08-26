@@ -239,3 +239,49 @@ SELECT
 FROM customer_churn
 WHERE CustomerStatus = 'Churned'
 GROUP BY 'Internet Service', PhoneService
+
+DELIMITER $$
+
+CREATE PROCEDURE CalculateChurnRate()
+BEGIN
+    DECLARE totalCustomers INT;
+    DECLARE churnedCustomers INT;
+    DECLARE churnRate DECIMAL(5, 2);
+    
+    -- Get total number of customers
+    SELECT COUNT(*) INTO totalCustomers
+    FROM customer_churn;
+    
+    -- Get total number of churned customers
+    SELECT COUNT(*) INTO churnedCustomers
+    FROM customer_churn
+    WHERE CustomerStatus = 'Churned';
+    
+    -- Calculate churn rate
+    SET churnRate = (churnedCustomers / totalCustomers) * 100;
+    
+    -- Output churn rate
+    SELECT CONCAT('Churn Rate: ', churnRate, '%') AS ChurnRate;
+    
+END $$
+
+DELIMITER ;
+
+CALL CalculateChurnRate();
+
+
+DELIMITER $$
+
+CREATE PROCEDURE IdentifyHighValueAtRiskCustomers5(IN minTotalCharges DECIMAL(10,2), IN minMonthlyCharges DECIMAL(10,2))
+BEGIN
+    -- Select high-value customers at risk of churning
+    SELECT CustomerID, Age, TotalCharges, MonthlyCharge, CustomerStatus
+    FROM customer_churn
+    WHERE TotalCharges >= minTotalCharges
+    AND MonthlyCharge >= minMonthlyCharges
+    AND CustomerStatus = 'At Risk';
+END $$
+
+DELIMITER ;
+
+CALL IdentifyHighValueAtRiskCustomers5(1500, -5);
